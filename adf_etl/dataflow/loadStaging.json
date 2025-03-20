@@ -1,0 +1,62 @@
+{
+	"name": "loadStaging",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "landingData",
+						"type": "DatasetReference"
+					},
+					"name": "landingAdmissions"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dwh_patient",
+						"type": "DatasetReference"
+					},
+					"name": "stagingPatient"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          name as string,",
+				"          gender as string,",
+				"          age as string,",
+				"          bloodType as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n    name, gender, age, bloodType\\nFROM [landing].[admissions]',",
+				"     format: 'query',",
+				"     staged: true) ~> landingAdmissions",
+				"landingAdmissions sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          patientId as integer,",
+				"          name as string,",
+				"          age as string,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          dateCreated as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> stagingPatient"
+			]
+		}
+	}
+}

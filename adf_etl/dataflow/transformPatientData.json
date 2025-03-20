@@ -13,7 +13,7 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "dwh_patient",
+						"referenceName": "staging_patient",
 						"type": "DatasetReference"
 					},
 					"name": "patient"

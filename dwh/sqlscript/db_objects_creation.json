@@ -1,0 +1,17 @@
+{
+	"name": "db_objects_creation",
+	"properties": {
+		"content": {
+			"query": "CREATE SCHEMA landing;\n\nCREATE TABLE [landing].[admissions](\n    name VARCHAR(100),\n    age VARCHAR(5),\n    gender VARCHAR(10),\n    bloodType VARCHAR(5),\n    medicalCondition VARCHAR(100),\n    dateOfAdmission VARCHAR(50),\n    doctor VARCHAR(100),\n    hospital VARCHAR(100),\n    insuranceProvider VARCHAR(100),\n    billingAmount VARCHAR(50),\n    roomNumber VARCHAR(10),\n    admissionType VARCHAR(50),\n    dischargeDate VARCHAR(50),\n    medication VARCHAR(100),\n    testResults VARCHAR(100)\n) WITH (\n    DISTRIBUTION = ROUND_ROBIN\n);\n\nCREATE SCHEMA staging;\n\nCREATE TABLE [staging].[patient] (\n    patientId INT NOT NULL,\n    name VARCHAR(100) NOT NULL,\n    gender CHAR(1),\n    bloodType VARCHAR(3),\n    dateCreated DATETIME\n)\nWITH (\n    DISTRIBUTION = ROUND_ROBIN\n);\n\n\nCREATE TABLE [staging].[insuranceProvider] (\n    insuranceProviderId INT NOT NULL,\n    name VARCHAR(100) NOT NULL,\n    dateCreated DATETIME\n)\nWITH (\n    DISTRIBUTION = ROUND_ROBIN\n);\n\n\nCREATE TABLE [staging].[factAdmission](\n    dimPatientId INT,\n    dimInsuranceProviderId INT,\n    dimDateOfAdmissionId CHAR(8),\n    dimDateOfDischarge CHAR(8),\n    billingAmount MONEY,\n    dateCreated DATETIME\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "dedicatedsqlpool28",
+				"poolName": "dedicatedsqlpool28"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

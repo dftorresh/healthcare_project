@@ -1,5 +1,5 @@
 {
-	"name": "dwh_patient",
+	"name": "staging_patient",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "azuresynapse",
@@ -23,7 +23,7 @@
 			},
 			{
 				"name": "gender",
-				"type": "char"
+				"type": "varchar"
 			},
 			{
 				"name": "bloodType",

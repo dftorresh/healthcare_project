@@ -1,0 +1,44 @@
+{
+	"name": "dwh_patient",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azuresynapse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "patientId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "name",
+				"type": "varchar"
+			},
+			{
+				"name": "age",
+				"type": "varchar"
+			},
+			{
+				"name": "gender",
+				"type": "char"
+			},
+			{
+				"name": "bloodType",
+				"type": "varchar"
+			},
+			{
+				"name": "dateCreated",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "staging",
+			"table": "patient"
+		}
+	}
+}

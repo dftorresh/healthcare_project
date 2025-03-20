@@ -93,8 +93,10 @@
 					},
 					"sink": {
 						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [landing].[admissions]",
 						"writeBehavior": "Insert",
-						"sqlWriterUseTableLock": false
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
 					"parallelCopies": 1,

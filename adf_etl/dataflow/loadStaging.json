@@ -21,7 +21,11 @@
 					"name": "stagingPatient"
 				}
 			],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "checkNameLenght"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          name as string,",
@@ -35,7 +39,8 @@
 				"     query: 'SELECT\\n    name, gender, age, bloodType\\nFROM [landing].[admissions]',",
 				"     format: 'query',",
 				"     staged: false) ~> landingAdmissions",
-				"landingAdmissions sink(allowSchemaDrift: false,",
+				"landingAdmissions derive(name = left(name,100)) ~> checkNameLenght",
+				"checkNameLenght sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
 				"          patientId as integer,",

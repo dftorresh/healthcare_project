@@ -1,0 +1,89 @@
+{
+	"name": "transformPatientData",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "landingData",
+						"type": "DatasetReference"
+					},
+					"name": "admissions"
+				},
+				{
+					"dataset": {
+						"referenceName": "dwh_patient",
+						"type": "DatasetReference"
+					},
+					"name": "patient"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "selectPatientFields"
+				},
+				{
+					"name": "removeTrailSpaces"
+				},
+				{
+					"name": "patientData"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          name as string,",
+				"          age as string,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          medicalCondition as string,",
+				"          dateOfAdmission as string,",
+				"          doctor as string,",
+				"          hospital as string,",
+				"          insuranceProvider as string,",
+				"          billingAmount as string,",
+				"          roomNumber as string,",
+				"          admissionType as string,",
+				"          dischargeDate as string,",
+				"          medication as string,",
+				"          testResults as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> admissions",
+				"source(output(",
+				"          patientId as integer,",
+				"          name as string,",
+				"          age as string,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          dateCreated as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> patient",
+				"admissions select(mapColumn(",
+				"          name,",
+				"          age,",
+				"          gender,",
+				"          bloodType",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPatientFields",
+				"selectPatientFields derive(name = trim(name),",
+				"          age = trim(age),",
+				"          gender = iif(trim(gender) == 'Male', 'M', iif(trim(gender) == 'Female', 'F', '')),",
+				"          bloodType = trim(bloodType),",
+				"          dateCreated = currentTimestamp()) ~> removeTrailSpaces",
+				"removeTrailSpaces keyGenerate(output(patientId as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> patientData"
+			]
+		}
+	}
+}

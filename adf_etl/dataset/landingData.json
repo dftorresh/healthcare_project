@@ -1,0 +1,77 @@
+{
+	"name": "landingData",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azuresynapse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "name",
+				"type": "varchar"
+			},
+			{
+				"name": "age",
+				"type": "varchar"
+			},
+			{
+				"name": "gender",
+				"type": "varchar"
+			},
+			{
+				"name": "bloodType",
+				"type": "varchar"
+			},
+			{
+				"name": "medicalCondition",
+				"type": "varchar"
+			},
+			{
+				"name": "dateOfAdmission",
+				"type": "varchar"
+			},
+			{
+				"name": "doctor",
+				"type": "varchar"
+			},
+			{
+				"name": "hospital",
+				"type": "varchar"
+			},
+			{
+				"name": "insuranceProvider",
+				"type": "varchar"
+			},
+			{
+				"name": "billingAmount",
+				"type": "varchar"
+			},
+			{
+				"name": "roomNumber",
+				"type": "varchar"
+			},
+			{
+				"name": "admissionType",
+				"type": "varchar"
+			},
+			{
+				"name": "dischargeDate",
+				"type": "varchar"
+			},
+			{
+				"name": "medication",
+				"type": "varchar"
+			},
+			{
+				"name": "testResults",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "landing",
+			"table": "admissions"
+		}
+	}
+}

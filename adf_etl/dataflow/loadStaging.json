@@ -34,7 +34,7 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT\\n    name, gender, age, bloodType\\nFROM [landing].[admissions]',",
 				"     format: 'query',",
-				"     staged: true) ~> landingAdmissions",
+				"     staged: false) ~> landingAdmissions",
 				"landingAdmissions sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
@@ -51,8 +51,7 @@
 				"     upsertable:false,",
 				"     truncate:true,",
 				"     format: 'table',",
-				"     staged: true,",
-				"     allowCopyCommand: true,",
+				"     staged: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError') ~> stagingPatient"

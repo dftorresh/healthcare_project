@@ -15,7 +15,7 @@
 			"sinks": [],
 			"transformations": [
 				{
-					"name": "remoteTrailSpaces"
+					"name": "formatValues"
 				},
 				{
 					"name": "identifyDuplicatedRecords"
@@ -23,6 +23,9 @@
 				{
 					"name": "removeDuplicateRecords",
 					"description": "Filter rows that were marked with a rowcount greather than 1 in the previous activity"
+				},
+				{
+					"name": "checkValues"
 				}
 			],
 			"scriptLines": [
@@ -39,9 +42,9 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table',",
 				"     staged: false) ~> stagingPatient",
-				"stagingPatient derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
-				"          name = initCap(name)) ~> remoteTrailSpaces",
-				"remoteTrailSpaces window(over(name,",
+				"checkValues@validRecords derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
+				"          name = initCap(name)) ~> formatValues",
+				"formatValues window(over(name,",
 				"          age,",
 				"          gender,",
 				"          bloodType),",
@@ -50,7 +53,9 @@
 				"     asc(age, false),",
 				"     asc(bloodType, false),",
 				"     rowNum = rowNumber()) ~> identifyDuplicatedRecords",
-				"identifyDuplicatedRecords filter(rowNum == 1) ~> removeDuplicateRecords"
+				"identifyDuplicatedRecords filter(rowNum == 1) ~> removeDuplicateRecords",
+				"stagingPatient split(isInteger(age),",
+				"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)"
 			]
 		}
 	}

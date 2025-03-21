@@ -1,0 +1,55 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "staging_patient",
+						"type": "DatasetReference"
+					},
+					"name": "stagingPatient"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "remoteTrailSpaces"
+				},
+				{
+					"name": "identifyDuplicatedRecords"
+				},
+				{
+					"name": "removeDuplicates"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          patientId as integer,",
+				"          name as string,",
+				"          age as string,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          dateCreated as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: false) ~> stagingPatient",
+				"stagingPatient derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', ''))) ~> remoteTrailSpaces",
+				"remoteTrailSpaces window(over(name,",
+				"          age,",
+				"          gender,",
+				"          bloodType),",
+				"     asc(name, false),",
+				"     asc(gender, false),",
+				"     asc(age, false),",
+				"     asc(bloodType, false),",
+				"     rowNum = rowNumber()) ~> identifyDuplicatedRecords",
+				"identifyDuplicatedRecords alterRow(deleteIf(rowNum > 1)) ~> removeDuplicates"
+			]
+		}
+	}
+}

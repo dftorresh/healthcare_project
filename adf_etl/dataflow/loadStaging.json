@@ -39,7 +39,7 @@
 				"     query: 'SELECT\\n    name, gender, age, bloodType\\nFROM [landing].[admissions]',",
 				"     format: 'query',",
 				"     staged: false) ~> landingAdmissions",
-				"landingAdmissions derive(name = left(name,100)) ~> checkNameLenght",
+				"landingAdmissions derive(name = left(trim(name),100)) ~> checkNameLenght",
 				"checkNameLenght sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",

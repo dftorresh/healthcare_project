@@ -21,7 +21,8 @@
 					"name": "identifyDuplicatedRecords"
 				},
 				{
-					"name": "removeDuplicates"
+					"name": "removeDuplicateRecords",
+					"description": "Filter rows that were marked with a rowcount greather than 1 in the previous activity"
 				}
 			],
 			"scriptLines": [
@@ -48,7 +49,7 @@
 				"     asc(age, false),",
 				"     asc(bloodType, false),",
 				"     rowNum = rowNumber()) ~> identifyDuplicatedRecords",
-				"identifyDuplicatedRecords alterRow(deleteIf(rowNum > 1)) ~> removeDuplicates"
+				"identifyDuplicatedRecords filter(rowNum == 1) ~> removeDuplicateRecords"
 			]
 		}
 	}

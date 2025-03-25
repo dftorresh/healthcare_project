@@ -306,7 +306,7 @@
 				]
 			},
 			{
-				"name": "loadStagingTables",
+				"name": "loadToStaging",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{

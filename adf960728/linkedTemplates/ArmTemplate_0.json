@@ -1,0 +1,966 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf960728"
+		},
+		"azuresynapse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'azuresynapse'"
+		},
+		"datalake_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'datalake'"
+		},
+		"datalake_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://datalake28dft.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/azuresynapse')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('azuresynapse_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/datalake')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('datalake_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('datalake_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/hospitalAdmissionData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "datalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "landing",
+						"fileSystem": "hospitaldata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Name",
+						"type": "String"
+					},
+					{
+						"name": "Age",
+						"type": "String"
+					},
+					{
+						"name": "Gender",
+						"type": "String"
+					},
+					{
+						"name": "Blood Type",
+						"type": "String"
+					},
+					{
+						"name": "Medical Condition",
+						"type": "String"
+					},
+					{
+						"name": "Date of Admission",
+						"type": "String"
+					},
+					{
+						"name": "Doctor",
+						"type": "String"
+					},
+					{
+						"name": "Hospital",
+						"type": "String"
+					},
+					{
+						"name": "Insurance Provider",
+						"type": "String"
+					},
+					{
+						"name": "Billing Amount",
+						"type": "String"
+					},
+					{
+						"name": "Room Number",
+						"type": "String"
+					},
+					{
+						"name": "Admission Type",
+						"type": "String"
+					},
+					{
+						"name": "Discharge Date",
+						"type": "String"
+					},
+					{
+						"name": "Medication",
+						"type": "String"
+					},
+					{
+						"name": "Test Results",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/landingData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "azuresynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "age",
+						"type": "varchar"
+					},
+					{
+						"name": "gender",
+						"type": "varchar"
+					},
+					{
+						"name": "bloodType",
+						"type": "varchar"
+					},
+					{
+						"name": "medicalCondition",
+						"type": "varchar"
+					},
+					{
+						"name": "dateOfAdmission",
+						"type": "varchar"
+					},
+					{
+						"name": "doctor",
+						"type": "varchar"
+					},
+					{
+						"name": "hospital",
+						"type": "varchar"
+					},
+					{
+						"name": "insuranceProvider",
+						"type": "varchar"
+					},
+					{
+						"name": "billingAmount",
+						"type": "varchar"
+					},
+					{
+						"name": "roomNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "admissionType",
+						"type": "varchar"
+					},
+					{
+						"name": "dischargeDate",
+						"type": "varchar"
+					},
+					{
+						"name": "medication",
+						"type": "varchar"
+					},
+					{
+						"name": "testResults",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "landing",
+					"table": "admissions"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/azuresynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/staging_patient')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "azuresynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "age",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "gender",
+						"type": "char"
+					},
+					{
+						"name": "bloodType",
+						"type": "char"
+					}
+				],
+				"typeProperties": {
+					"schema": "staging",
+					"table": "patient"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/azuresynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dwhDimPatient')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "azuresynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "patientId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "age",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "gender",
+						"type": "char"
+					},
+					{
+						"name": "bloodType",
+						"type": "varchar"
+					},
+					{
+						"name": "dateCreated",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "dwh",
+					"table": "dimPatient"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/azuresynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/patientLandingToStaging')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "landingData",
+								"type": "DatasetReference"
+							},
+							"name": "patientLandingData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "staging_patient",
+								"type": "DatasetReference"
+							},
+							"name": "stagingPatient"
+						}
+					],
+					"transformations": [
+						{
+							"name": "identifyDuplicatedRecords"
+						},
+						{
+							"name": "removeDuplicateRecords",
+							"description": "Filter rows that were marked with a rowcount greather than 1 in the previous activity"
+						},
+						{
+							"name": "checkValues"
+						},
+						{
+							"name": "formatValues"
+						},
+						{
+							"name": "changeAgeDataType"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          name as string,",
+						"          age as string,",
+						"          gender as string,",
+						"          bloodType as string,",
+						"          medicalCondition as string,",
+						"          dateOfAdmission as string,",
+						"          doctor as string,",
+						"          hospital as string,",
+						"          insuranceProvider as string,",
+						"          billingAmount as string,",
+						"          roomNumber as string,",
+						"          admissionType as string,",
+						"          dischargeDate as string,",
+						"          medication as string,",
+						"          testResults as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    name, gender, age, bloodType\\nFROM [landing].[admissions]',",
+						"     format: 'query',",
+						"     staged: false) ~> patientLandingData",
+						"checkValues@validRecords window(over(name,",
+						"          age,",
+						"          gender,",
+						"          bloodType),",
+						"     asc(name, false),",
+						"     asc(gender, false),",
+						"     asc(age, false),",
+						"     asc(bloodType, false),",
+						"     rowNum = rowNumber()) ~> identifyDuplicatedRecords",
+						"identifyDuplicatedRecords filter(rowNum == 1) ~> removeDuplicateRecords",
+						"formatValues split(isInteger(age) && toInteger(age) > 0 && contains(['B-','A+','A-','O+','AB+','AB-','B+','O-'], bloodType) && contains(['M','F'], gender),",
+						"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)",
+						"patientLandingData derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
+						"          name = initCap(left(trim(name),100))) ~> formatValues",
+						"removeDuplicateRecords cast(output(",
+						"          age as integer",
+						"     ),",
+						"     errors: true) ~> changeAgeDataType",
+						"changeAgeDataType sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          name as string,",
+						"          age as integer,",
+						"          gender as string,",
+						"          bloodType as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     staged: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> stagingPatient"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/landingData')]",
+				"[concat(variables('factoryId'), '/datasets/staging_patient')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/loadStaging')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "landingData",
+								"type": "DatasetReference"
+							},
+							"name": "landingAdmissions"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "staging_patient",
+								"type": "DatasetReference"
+							},
+							"name": "stagingPatient"
+						}
+					],
+					"transformations": [
+						{
+							"name": "checkNameLenght"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          name as string,",
+						"          gender as string,",
+						"          age as string,",
+						"          bloodType as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    name, gender, age, bloodType\\nFROM [landing].[admissions]',",
+						"     format: 'query',",
+						"     staged: false) ~> landingAdmissions",
+						"landingAdmissions derive(name = left(trim(name),100)) ~> checkNameLenght",
+						"checkNameLenght sink(allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     input(",
+						"          name as string,",
+						"          age as integer,",
+						"          gender as string,",
+						"          bloodType as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     staged: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> stagingPatient"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/landingData')]",
+				"[concat(variables('factoryId'), '/datasets/staging_patient')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/patientStagingToDwh')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "staging_patient",
+								"type": "DatasetReference"
+							},
+							"name": "stagingPatient"
+						},
+						{
+							"dataset": {
+								"referenceName": "dwhDimPatient",
+								"type": "DatasetReference"
+							},
+							"name": "patientDwh"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "staging_patient",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "checkIfAdmissionAlreadyExists",
+							"description": "Check if the admission (patient/date) already exists in the dwh. If so, skip it."
+						},
+						{
+							"name": "AddPatientSk"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          name as string,",
+						"          age as integer,",
+						"          gender as string,",
+						"          bloodType as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table',",
+						"     staged: true) ~> stagingPatient",
+						"source(output(",
+						"          patientId as integer,",
+						"          name as string,",
+						"          age as integer,",
+						"          gender as string,",
+						"          bloodType as string,",
+						"          dateCreated as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table',",
+						"     staged: true) ~> patientDwh",
+						"stagingPatient, patientDwh exists(stagingPatient@name == patientDwh@name",
+						"     && stagingPatient@age == patientDwh@age",
+						"     && stagingPatient@gender == patientDwh@gender",
+						"     && stagingPatient@bloodType == patientDwh@bloodType,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> checkIfAdmissionAlreadyExists",
+						"checkIfAdmissionAlreadyExists keyGenerate(output(patientSk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> AddPatientSk",
+						"AddPatientSk sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          name as string,",
+						"          age as integer,",
+						"          gender as string,",
+						"          bloodType as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     staged: true,",
+						"     allowCopyCommand: true,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/staging_patient')]",
+				"[concat(variables('factoryId'), '/datasets/dwhDimPatient')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/processHospitalData')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "getSourceFilesList",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "hospitalAdmissionData",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "pickOneFile",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "getSourceFilesList",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "fileName",
+							"value": {
+								"value": "@activity('getSourceFilesList').output.childItems[0]['name']",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "loadLanding",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "pickOneFile",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"wildcardFolderPath": "landing",
+									"wildcardFileName": {
+										"value": "@variables('fileName')",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlDWSink",
+								"preCopyScript": "TRUNCATE TABLE [landing].[admissions]",
+								"writeBehavior": "Insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"parallelCopies": 1,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Name",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Age",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "age",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Gender",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "gender",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Blood Type",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "bloodType",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Medical Condition",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "medicalCondition",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Date of Admission",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "dateOfAdmission",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Doctor",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "doctor",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Hospital",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "hospital",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Insurance Provider",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "insuranceProvider",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Billing Amount",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "billingAmount",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Room Number",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "roomNumber",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Admission Type",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "admissionType",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Discharge Date",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "dischargeDate",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Medication",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "medication",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Test Results",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "testResults",
+											"type": "String",
+											"physicalType": "varchar"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "hospitalAdmissionData",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "landingData",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "loadToStaging",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "loadLanding",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "patientLandingToStaging",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"patientLandingData": {},
+									"stagingPatient": {}
+								},
+								"linkedServiceParameters": {}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"fileName": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/hospitalAdmissionData')]",
+				"[concat(variables('factoryId'), '/datasets/landingData')]",
+				"[concat(variables('factoryId'), '/dataflows/patientLandingToStaging')]"
+			]
+		}
+	]
+}

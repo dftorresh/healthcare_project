@@ -121,7 +121,17 @@
 				"     upsertable:false,",
 				"     format: 'table',",
 				"     staged: false,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> sinDWHpatient"
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          patientSK = patientSk,",
+				"          name,",
+				"          age,",
+				"          gender,",
+				"          bloodType,",
+				"          dateCreated",
+				"     )) ~> sinDWHpatient"
 			]
 		}
 	}

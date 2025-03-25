@@ -832,15 +832,25 @@
 								"type": "DatasetReference"
 							},
 							"name": "patientDwh"
+						},
+						{
+							"dataset": {
+								"referenceName": "dwhDimPatient",
+								"type": "DatasetReference"
+							},
+							"name": "getMaxPatientSk"
 						}
 					],
 					"sinks": [
 						{
+							"name": "cacheMaxPatientSk"
+						},
+						{
 							"dataset": {
-								"referenceName": "staging_patient",
+								"referenceName": "dwhDimPatient",
 								"type": "DatasetReference"
 							},
-							"name": "sink1"
+							"name": "sinDWHpatient"
 						}
 					],
 					"transformations": [
@@ -849,7 +859,13 @@
 							"description": "Check if the admission (patient/date) already exists in the dwh. If so, skip it."
 						},
 						{
+							"name": "computePatientSk"
+						},
+						{
 							"name": "AddPatientSk"
+						},
+						{
+							"name": "addCreatedDate"
 						}
 					],
 					"scriptLines": [
@@ -865,7 +881,7 @@
 						"     format: 'table',",
 						"     staged: true) ~> stagingPatient",
 						"source(output(",
-						"          patientId as integer,",
+						"          patientSK as integer,",
 						"          name as string,",
 						"          age as integer,",
 						"          gender as string,",
@@ -877,6 +893,15 @@
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table',",
 						"     staged: true) ~> patientDwh",
+						"source(output(",
+						"          maxPatientSk as integer",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n    ISNULL(MAX(patientSk),0) AS maxPatientSk\\nFROM [dwh].[dimPatient]',",
+						"     format: 'query',",
+						"     staged: false) ~> getMaxPatientSk",
 						"stagingPatient, patientDwh exists(stagingPatient@name == patientDwh@name",
 						"     && stagingPatient@age == patientDwh@age",
 						"     && stagingPatient@gender == patientDwh@gender",
@@ -885,25 +910,35 @@
 						"     broadcast: 'auto')~> checkIfAdmissionAlreadyExists",
 						"checkIfAdmissionAlreadyExists keyGenerate(output(patientSk as long),",
 						"     startAt: 1L,",
-						"     stepValue: 1L) ~> AddPatientSk",
-						"AddPatientSk sink(allowSchemaDrift: true,",
+						"     stepValue: 1L) ~> computePatientSk",
+						"computePatientSk derive(patientSk = patientSk + cacheMaxPatientSk#outputs()[1].maxPatientSk) ~> AddPatientSk",
+						"AddPatientSk derive(dateCreated = currentTimestamp()) ~> addCreatedDate",
+						"getMaxPatientSk sink(validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     store: 'cache',",
+						"     format: 'inline',",
+						"     output: false,",
+						"     saveOrder: 1) ~> cacheMaxPatientSk",
+						"addCreatedDate sink(allowSchemaDrift: false,",
 						"     validateSchema: false,",
 						"     input(",
+						"          patientSK as integer,",
 						"          name as string,",
 						"          age as integer,",
 						"          gender as string,",
-						"          bloodType as string",
+						"          bloodType as string,",
+						"          dateCreated as timestamp",
 						"     ),",
 						"     deletable:false,",
 						"     insertable:true,",
 						"     updateable:false,",
 						"     upsertable:false,",
 						"     format: 'table',",
-						"     staged: true,",
-						"     allowCopyCommand: true,",
+						"     staged: false,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+						"     errorHandlingOption: 'stopOnFirstError') ~> sinDWHpatient"
 					]
 				}
 			},
@@ -925,7 +960,7 @@
 				"type": "AzureSqlDWTable",
 				"schema": [
 					{
-						"name": "patientId",
+						"name": "patientSK",
 						"type": "int",
 						"precision": 10
 					},

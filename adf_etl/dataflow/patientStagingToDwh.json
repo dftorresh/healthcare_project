@@ -1,0 +1,65 @@
+{
+	"name": "patientStagingToDwh",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "staging_patient",
+						"type": "DatasetReference"
+					},
+					"name": "stagingPatient"
+				},
+				{
+					"dataset": {
+						"referenceName": "dwhDimPatient",
+						"type": "DatasetReference"
+					},
+					"name": "patientDwh"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "checkIfAdmissionAlreadyExists",
+					"description": "Check if the admission (patient/date) already exists in the dwh. If so, skip it."
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          patientId as integer,",
+				"          name as string,",
+				"          age as string,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          dateCreated as timestamp",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> stagingPatient",
+				"source(output(",
+				"          patientId as integer,",
+				"          name as string,",
+				"          age as integer,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          dateCreated as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> patientDwh",
+				"stagingPatient, patientDwh exists(stagingPatient@name == patientDwh@name",
+				"     && stagingPatient@age == patientDwh@age",
+				"     && stagingPatient@gender == patientDwh@gender",
+				"     && stagingPatient@bloodType == patientDwh@bloodType,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> checkIfAdmissionAlreadyExists"
+			]
+		}
+	}
+}

@@ -24,16 +24,17 @@
 				{
 					"name": "checkIfAdmissionAlreadyExists",
 					"description": "Check if the admission (patient/date) already exists in the dwh. If so, skip it."
+				},
+				{
+					"name": "AddPatientSk"
 				}
 			],
 			"scriptLines": [
 				"source(output(",
-				"          patientId as integer,",
 				"          name as string,",
-				"          age as string,",
+				"          age as integer,",
 				"          gender as string,",
-				"          bloodType as string,",
-				"          dateCreated as timestamp",
+				"          bloodType as string",
 				"     ),",
 				"     allowSchemaDrift: false,",
 				"     validateSchema: false,",
@@ -58,7 +59,10 @@
 				"     && stagingPatient@gender == patientDwh@gender",
 				"     && stagingPatient@bloodType == patientDwh@bloodType,",
 				"     negate:true,",
-				"     broadcast: 'auto')~> checkIfAdmissionAlreadyExists"
+				"     broadcast: 'auto')~> checkIfAdmissionAlreadyExists",
+				"checkIfAdmissionAlreadyExists keyGenerate(output(patientSk as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> AddPatientSk"
 			]
 		}
 	}

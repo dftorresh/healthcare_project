@@ -62,10 +62,10 @@
 				"     asc(bloodType, false),",
 				"     rowNum = rowNumber()) ~> identifyDuplicatedRecords",
 				"identifyDuplicatedRecords filter(rowNum == 1) ~> removeDuplicateRecords",
-				"formatValues split(isInteger(age) && contains(['B-','A+','A-','O+','AB+','AB-','B+','O-'], bloodType) && contains(['M','F'], gender),",
+				"formatValues split(isInteger(age) && toInteger(age) > 0 && contains(['B-','A+','A-','O+','AB+','AB-','B+','O-'], bloodType) && contains(['M','F'], gender),",
 				"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)",
 				"patientLandingData derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
-				"          name = initCap(name)) ~> formatValues"
+				"          name = initCap(left(trim(name),100))) ~> formatValues"
 			]
 		}
 	}

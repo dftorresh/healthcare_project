@@ -19,7 +19,15 @@
 					"name": "patientDwh"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "staging_patient",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "checkIfAdmissionAlreadyExists",
@@ -62,7 +70,25 @@
 				"     broadcast: 'auto')~> checkIfAdmissionAlreadyExists",
 				"checkIfAdmissionAlreadyExists keyGenerate(output(patientSk as long),",
 				"     startAt: 1L,",
-				"     stepValue: 1L) ~> AddPatientSk"
+				"     stepValue: 1L) ~> AddPatientSk",
+				"AddPatientSk sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          name as string,",
+				"          age as integer,",
+				"          gender as string,",
+				"          bloodType as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
 			]
 		}
 	}

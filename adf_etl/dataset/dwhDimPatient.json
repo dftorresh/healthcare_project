@@ -9,7 +9,7 @@
 		"type": "AzureSqlDWTable",
 		"schema": [
 			{
-				"name": "patientId",
+				"name": "patientSK",
 				"type": "int",
 				"precision": 10
 			},

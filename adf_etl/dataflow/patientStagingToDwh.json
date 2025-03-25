@@ -29,6 +29,13 @@
 			"sinks": [
 				{
 					"name": "cacheMaxPatientSk"
+				},
+				{
+					"dataset": {
+						"referenceName": "dwhDimPatient",
+						"type": "DatasetReference"
+					},
+					"name": "sinDWHpatient"
 				}
 			],
 			"transformations": [
@@ -90,14 +97,33 @@
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> computePatientSk",
 				"computePatientSk derive(patientSk = patientSk + cacheMaxPatientSk#outputs()[1].maxPatientSk) ~> AddPatientSk",
-				"AddPatientSk derive(createdDate = currentTimestamp()) ~> addCreatedDate",
+				"AddPatientSk derive(dateCreated = currentTimestamp()) ~> addCreatedDate",
 				"getMaxPatientSk sink(validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     store: 'cache',",
 				"     format: 'inline',",
 				"     output: false,",
-				"     saveOrder: 1) ~> cacheMaxPatientSk"
+				"     saveOrder: 1) ~> cacheMaxPatientSk",
+				"addCreatedDate sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          patientSK as integer,",
+				"          name as string,",
+				"          age as integer,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          dateCreated as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinDWHpatient"
 			]
 		}
 	}

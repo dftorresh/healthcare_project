@@ -23,12 +23,12 @@
 						"referenceName": "dwhDimPatient",
 						"type": "DatasetReference"
 					},
-					"name": "maxPatientSkInDwhTable"
+					"name": "getMaxPatientSk"
 				}
 			],
 			"sinks": [
 				{
-					"name": "maxPatientSk"
+					"name": "cacheMaxPatientSk"
 				}
 			],
 			"transformations": [
@@ -76,7 +76,7 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT\\n    ISNULL(MAX(patientSk),0) AS maxPatientSk\\nFROM [dwh].[dimPatient]',",
 				"     format: 'query',",
-				"     staged: false) ~> maxPatientSkInDwhTable",
+				"     staged: false) ~> getMaxPatientSk",
 				"stagingPatient, patientDwh exists(stagingPatient@name == patientDwh@name",
 				"     && stagingPatient@age == patientDwh@age",
 				"     && stagingPatient@gender == patientDwh@gender",
@@ -86,14 +86,14 @@
 				"checkIfAdmissionAlreadyExists keyGenerate(output(patientSk as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> computePatientSk",
-				"computePatientSk derive(patientSk = patientSk + maxPatientSk#outputs()[1].maxPatientSk) ~> AddPatientSk",
-				"maxPatientSkInDwhTable sink(validateSchema: false,",
+				"computePatientSk derive(patientSk = patientSk + cacheMaxPatientSk#outputs()[1].maxPatientSk) ~> AddPatientSk",
+				"getMaxPatientSk sink(validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     store: 'cache',",
 				"     format: 'inline',",
 				"     output: false,",
-				"     saveOrder: 1) ~> maxPatientSk"
+				"     saveOrder: 1) ~> cacheMaxPatientSk"
 			]
 		}
 	}

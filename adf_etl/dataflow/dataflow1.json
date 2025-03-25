@@ -6,10 +6,10 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "staging_patient",
+						"referenceName": "landingData",
 						"type": "DatasetReference"
 					},
-					"name": "stagingPatient"
+					"name": "patientLandingData"
 				}
 			],
 			"sinks": [],
@@ -30,18 +30,28 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          patientId as integer,",
 				"          name as string,",
 				"          age as string,",
 				"          gender as string,",
 				"          bloodType as string,",
-				"          dateCreated as timestamp",
+				"          medicalCondition as string,",
+				"          dateOfAdmission as string,",
+				"          doctor as string,",
+				"          hospital as string,",
+				"          insuranceProvider as string,",
+				"          billingAmount as string,",
+				"          roomNumber as string,",
+				"          admissionType as string,",
+				"          dischargeDate as string,",
+				"          medication as string,",
+				"          testResults as string",
 				"     ),",
-				"     allowSchemaDrift: true,",
+				"     allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table',",
-				"     staged: false) ~> stagingPatient",
+				"     query: 'SELECT\\n    name, gender, age, bloodType\\nFROM [landing].[admissions]',",
+				"     format: 'query',",
+				"     staged: false) ~> patientLandingData",
 				"checkValues@validRecords window(over(name,",
 				"          age,",
 				"          gender,",
@@ -54,7 +64,7 @@
 				"identifyDuplicatedRecords filter(rowNum == 1) ~> removeDuplicateRecords",
 				"formatValues split(isInteger(age) && contains(['B-','A+','A-','O+','AB+','AB-','B+','O-'], bloodType) && contains(['M','F'], gender),",
 				"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)",
-				"stagingPatient derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
+				"patientLandingData derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
 				"          name = initCap(name)) ~> formatValues"
 			]
 		}

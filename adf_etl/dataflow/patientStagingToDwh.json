@@ -96,7 +96,7 @@
 				"checkIfAdmissionAlreadyExists keyGenerate(output(patientSk as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> computePatientSk",
-				"computePatientSk derive(patientSk = patientSk + cacheMaxPatientSk#outputs()[1].maxPatientSk) ~> AddPatientSk",
+				"computePatientSk derive(patientSk = toInteger(patientSk + cacheMaxPatientSk#outputs()[1].maxPatientSk)) ~> AddPatientSk",
 				"AddPatientSk derive(dateCreated = currentTimestamp()) ~> addCreatedDate",
 				"getMaxPatientSk sink(validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -121,8 +121,6 @@
 				"     upsertable:false,",
 				"     format: 'table',",
 				"     staged: false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError') ~> sinDWHpatient"
 			]
 		}

@@ -12,7 +12,15 @@
 					"name": "patientLandingData"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "staging_patient",
+						"type": "DatasetReference"
+					},
+					"name": "stagingPatient"
+				}
+			],
 			"transformations": [
 				{
 					"name": "identifyDuplicatedRecords"
@@ -65,7 +73,26 @@
 				"formatValues split(isInteger(age) && toInteger(age) > 0 && contains(['B-','A+','A-','O+','AB+','AB-','B+','O-'], bloodType) && contains(['M','F'], gender),",
 				"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)",
 				"patientLandingData derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
-				"          name = initCap(left(trim(name),100))) ~> formatValues"
+				"          name = initCap(left(trim(name),100))) ~> formatValues",
+				"removeDuplicateRecords sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          patientId as integer,",
+				"          name as string,",
+				"          age as string,",
+				"          gender as string,",
+				"          bloodType as string,",
+				"          dateCreated as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> stagingPatient"
 			]
 		}
 	}

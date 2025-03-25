@@ -562,7 +562,7 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table',",
-						"     staged: true) ~> stagingPatient",
+						"     staged: false) ~> stagingPatient",
 						"source(output(",
 						"          patientSK as integer,",
 						"          name as string,",
@@ -575,7 +575,7 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table',",
-						"     staged: true) ~> patientDwh",
+						"     staged: false) ~> patientDwh",
 						"source(output(",
 						"          maxPatientSk as integer",
 						"     ),",
@@ -979,6 +979,46 @@
 							},
 							"traceLevel": "Fine"
 						}
+					},
+					{
+						"name": "stagingToDwh",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "loadToStaging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "patientStagingToDwh",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"stagingPatient": {},
+									"patientDwh": {},
+									"getMaxPatientSk": {},
+									"cacheMaxPatientSk": {},
+									"sinDWHpatient": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Coarse"
+						}
 					}
 				],
 				"policy": {
@@ -994,7 +1034,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/hospitalAdmissionData')]",
 				"[concat(variables('factoryId'), '/datasets/landingData')]",
-				"[concat(variables('factoryId'), '/dataflows/patientLandingToStaging')]"
+				"[concat(variables('factoryId'), '/dataflows/patientLandingToStaging')]",
+				"[concat(variables('factoryId'), '/dataflows/patientStagingToDwh')]"
 			]
 		}
 	]

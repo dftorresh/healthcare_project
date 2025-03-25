@@ -34,6 +34,9 @@
 				},
 				{
 					"name": "formatValues"
+				},
+				{
+					"name": "changeAgeDataType"
 				}
 			],
 			"scriptLines": [
@@ -74,7 +77,11 @@
 				"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)",
 				"patientLandingData derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
 				"          name = initCap(left(trim(name),100))) ~> formatValues",
-				"removeDuplicateRecords sink(allowSchemaDrift: false,",
+				"removeDuplicateRecords cast(output(",
+				"          age as integer",
+				"     ),",
+				"     errors: true) ~> changeAgeDataType",
+				"changeAgeDataType sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
 				"          patientId as integer,",

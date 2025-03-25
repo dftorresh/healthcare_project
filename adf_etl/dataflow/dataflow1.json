@@ -15,9 +15,6 @@
 			"sinks": [],
 			"transformations": [
 				{
-					"name": "formatValues"
-				},
-				{
 					"name": "identifyDuplicatedRecords"
 				},
 				{
@@ -26,6 +23,9 @@
 				},
 				{
 					"name": "checkValues"
+				},
+				{
+					"name": "formatValues"
 				}
 			],
 			"scriptLines": [
@@ -42,9 +42,7 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table',",
 				"     staged: false) ~> stagingPatient",
-				"checkValues@validRecords derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
-				"          name = initCap(name)) ~> formatValues",
-				"formatValues window(over(name,",
+				"checkValues@validRecords window(over(name,",
 				"          age,",
 				"          gender,",
 				"          bloodType),",
@@ -54,8 +52,10 @@
 				"     asc(bloodType, false),",
 				"     rowNum = rowNumber()) ~> identifyDuplicatedRecords",
 				"identifyDuplicatedRecords filter(rowNum == 1) ~> removeDuplicateRecords",
-				"stagingPatient split(isInteger(age),",
-				"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)"
+				"formatValues split(isInteger(age) && contains(['B-','A+','A-','O+','AB+','AB-','B+','O-'], bloodType) && contains(['M','F'], gender),",
+				"     disjoint: false) ~> checkValues@(validRecords, invalidRecords)",
+				"stagingPatient derive(gender = iif(gender == 'Male', 'M', iif(gender == 'Female', 'F', '')),",
+				"          name = initCap(name)) ~> formatValues"
 			]
 		}
 	}

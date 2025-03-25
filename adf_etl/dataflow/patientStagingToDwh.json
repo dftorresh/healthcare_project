@@ -89,7 +89,7 @@
 				"checkIfAdmissionAlreadyExists keyGenerate(output(patientSk as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> computePatientSk",
-				"computePatientSk derive(patientSk = patientSk + cacheMaxPatientSk#outputs()[0].maxPatientSk) ~> AddPatientSk",
+				"computePatientSk derive(patientSk = patientSk + cacheMaxPatientSk#outputs()[1].maxPatientSk) ~> AddPatientSk",
 				"AddPatientSk derive(createdDate = currentTimestamp()) ~> addCreatedDate",
 				"getMaxPatientSk sink(validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
